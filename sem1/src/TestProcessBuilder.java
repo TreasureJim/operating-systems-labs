@@ -4,18 +4,56 @@ import java.util.*;
 
 public class TestProcessBuilder {
 
+	private static class ProcessManager implements Runnable {
+
+		Vector<String> invalid_commands = new Vector<String>();
+		Vector<RunnableProcess> running_commands = new Vector<RunnableProcess>();
+		Vector<RunnableProcess> finished_commands = new Vector<RunnableProcess>();
+
+		public void print_invalid_commands() {
+			this.query_running_commands();
+
+			System.out.println("Errors:");
+			for (String s : this.invalid_commands) {
+				System.out.println("\t" + s);
+			}
+		}
+
+		private void query_running_commands() {
+			this.running_commands.removeIf(p -> {
+				if (p.get_exit_code() == null)
+					return false;
+				else if (p.get_exit_code() == 0)
+					return true;
+				else {
+					this.invalid_commands.add(p.get_command());
+					return true;
+				}
+			});
+		}
+
+		@Override
+		public void run() {
+			/**
+			 * loop through running commands
+			 * if finished remove from list and optionally add to invalid commands
+			 * else print output
+			 */
+		}
+	}
+
 	public static void main(String[] args) throws java.io.IOException {
 		String commandLine;
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("\n\n***** Welcome to the Java Command Shell *****");
 		System.out.println("If you want to exit the shell, type END and press RETURN.\n");
 
-		Vector<String> invalid_commands = new Vector<String>();
+		ProcessManager p_manager = new ProcessManager();
 
 		while (true) {
 			System.out.print("jsh>");
 			commandLine = scanner.nextLine();
-			// if user entered a return, just loop again
+
 			switch (commandLine.toLowerCase()) {
 				case "":
 					continue;
@@ -27,10 +65,7 @@ public class TestProcessBuilder {
 					System.exit(0);
 
 				case "showerrlog":
-					System.out.println("Errors:");
-					for (String s : invalid_commands) {
-						System.out.println("\t" + s);
-					}
+					p_manager.print_invalid_commands();
 					continue;
 
 				default:
@@ -38,13 +73,8 @@ public class TestProcessBuilder {
 			}
 
 			RunnableProcess process = new RunnableProcess(commandLine);
-			// if doesn't finish without error add to list of invalid commands
-			int exit_code = process.start();
-			if (exit_code != 0) {
-				invalid_commands.add(commandLine);
-				System.out.println("Bad command");
-			}
-			System.out.println("Exit code: " + exit_code);
+			p_manager.running_commands.add(process);
+			process.run();
 		}
 	}
 

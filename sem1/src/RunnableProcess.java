@@ -5,16 +5,27 @@ import java.util.*;
 
 public class RunnableProcess implements Runnable {
 	private String command;
+	private Integer exit_code = null;
+	private Process process;
 
-	private int exit_code;
+	public String get_command() {
+		return command;
+	}
+
+	public Integer get_exit_code() {
+		if (this.exit_code == null) {
+			try {
+				exit_code = this.process.exitValue();
+			} catch (IllegalThreadStateException e) {
+				return null;
+			}
+		}
+
+		return exit_code;
+	}
 
 	public RunnableProcess(String command) {
 		this.command = command;
-	}
-
-	public int start() {
-		this.run();
-		return this.exit_code;
 	}
 
 	@Override
@@ -24,8 +35,8 @@ public class RunnableProcess implements Runnable {
 		ProcessBuilder processBuilder = new ProcessBuilder(input);
 		BufferedReader bufferReader = null;
 		try {
-			Process proc = processBuilder.start();
-			InputStream inputStream = proc.getInputStream();
+			this.process = processBuilder.start();
+			InputStream inputStream = process.getInputStream();
 			InputStreamReader isr = new InputStreamReader(inputStream);
 			bufferReader = new BufferedReader(isr);
 
@@ -34,15 +45,11 @@ public class RunnableProcess implements Runnable {
 				System.out.println(line);
 			}
 
-			this.exit_code = proc.waitFor();
-
 			bufferReader.close();
 		} catch (java.io.IOException ioe) {
 			System.err.println("Error");
 			System.err.println(ioe);
 			this.exit_code = -1;
-		} catch (InterruptedException e) {
-			System.err.println("Error: process interrupted");
 		} finally {
 			if (bufferReader != null) {
 				try {
