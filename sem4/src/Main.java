@@ -1,15 +1,13 @@
 package src;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 public class Main {
@@ -68,19 +66,19 @@ public class Main {
 				continue;
 			} else if (commands[0].equals("showerrlog")) {
 				ProcessManager.printErrors();
-				continue;
 			} else if (commands[0].equals("end")) { // User wants to end shell
 				System.out.println("\n***** Command Shell Terminated. See you next time. BYE for now. *****\n");
 				scanner.close();
 				System.exit(0);
 			} else if (commands[0].equals("filedump")) {
 				DumpFile(commands[1]);
-				continue;
 			} else if (commands[0].equals("copyfile")) {
-
+				CopyFile(commands[1], commands[2]);
+			} else if (commands[0].equals("back")) {
+				Surprise(commands[1]);
+			} else {
+				ProcessManager.StartCommand(commandLine);
 			}
-
-			ProcessManager.StartCommand(commandLine);
 		}
 	}
 
@@ -140,9 +138,49 @@ public class Main {
 
 		while (inStream.read(buffer) != -1) {
 			// Write out to file
+			outStream.write(buffer);
 		}
 
 		inStream.close();
 		outStream.close();
+	}
+
+	static void Surprise(String path) throws IOException {
+		FileInputStream inStream;
+		FileOutputStream outStream;
+		byte[] buffer = new byte[1024];
+
+		File tempFile = File.createTempFile("reverser", "");
+
+		try {
+			inStream = new FileInputStream(path);
+			outStream = new FileOutputStream(tempFile);
+		} catch (FileNotFoundException e) {
+			System.err.println("File doesn't exist");
+			return;
+		}
+
+		File outFile = new File(path);
+		long fileLength = outFile.length();
+
+		for (long i = 0; i <= fileLength; i += buffer.length) {
+			inStream.read(buffer);
+
+			// reverse buffer
+			for (int y = 0; y < buffer.length / 2; y++) {
+				byte temp = buffer[y];
+				buffer[y] = buffer[buffer.length - y - 1];
+				buffer[buffer.length - y - 1] = temp;
+			}
+
+			// append to file
+			outStream.write(buffer);
+		}
+
+		inStream.close();
+		outStream.close();
+
+		Files.copy(Paths.get(tempFile.getAbsolutePath()), Paths.get(path), StandardCopyOption.REPLACE_EXISTING);
+		tempFile.delete();
 	}
 }
