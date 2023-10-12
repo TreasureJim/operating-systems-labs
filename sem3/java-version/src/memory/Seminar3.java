@@ -67,7 +67,7 @@ public class Seminar3 {
 		numberOfPageFaults = getNumberOfPageFaultsLRU(NUMBER_OF_FRAMES_64);
 		verifyLRU(numberOfPageFaults, 753, NUMBER_OF_FRAMES_64);
 
-		numberOfPageFaults = getNumberOfPageFaultsLRU(NUMBER_OF_FRAMES_32);
+		numberOfPageFaults = getNumberOfPageFaultsLRU(32);
 		verifyLRU(numberOfPageFaults, 878, NUMBER_OF_FRAMES_32);
 
 	}
