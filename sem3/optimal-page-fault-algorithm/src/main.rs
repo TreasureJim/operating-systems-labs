@@ -9,5 +9,11 @@ fn main() {
         .map(|x| x.parse::<u32>().unwrap())
         .collect();
 
-    let manager = memorymanager::MemoryManager::new(addresses);
+    let mut manager = memorymanager::MemoryManager::new(&addresses);
+
+    for addr in addresses {
+        manager.read_memory(addr);
+    }
+
+    println!("Total page faults: {}", manager.num_page_faults);
 }
